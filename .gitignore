@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+
+# Virtual environment
+.venv/
+
+# Configuration (contains secrets)
+.csycode/config.yaml
+.csycode/settings.local.yaml
+
+# IDE
+.idea/
+.vscode/
+
+# Testing
+.pytest_cache/
+
+# ch08: 上下文管理会话目录
+.csycode/sessions/
+
+# ch14: Worktree 隔离副本（仅供 SubAgent 与手动管理使用）
+.csycode/worktrees/
+.csycode/worktree_session.json
+
+# Open-source release exclusions
+docs/
+.claude/
+.csycode/
+.csycode_history
+.ruff_cache/

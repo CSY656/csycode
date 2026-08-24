@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AURALIS — 听见真实</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:opsz,wght@14..32,300..700&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET & TOKENS ===== */
+:root {
+  --bg-deep: #0B0E14;
+  --bg-surface: #1A1D25;
+  --bg-surface-hover: #232732;
+  --text-primary: #E8EDF2;
+  --text-secondary: #6C7A8D;
+  --text-muted: #454B58;
+  --accent-gold: #C9A96E;
+  --accent-gold-dim: rgba(201, 169, 110, 0.15);
+  --accent-blue: #4A6CF7;
+  --accent-blue-glow: rgba(74, 108, 247, 0.25);
+  --border-subtle: rgba(108, 122, 141, 0.15);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --max-width: 1200px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ===== TYPOGRAPHY SCALE ===== */
+h1, h2, h3, .display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+h1 { font-size: clamp(2.5rem, 5vw, 4.5rem); letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.75rem, 3vw, 2.75rem); letter-spacing: -0.01em; }
+h3 { font-size: 1.25rem; }
+.eyebrow {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--accent-gold);
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+.body-lg { font-size: 1.125rem; color: var(--text-secondary); max-width: 48ch; }
+.body-sm { font-size: 0.875rem; color: var(--text-secondary); }
+
+/* ===== NAVIGATION ===== */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  background: linear-gradient(180deg, var(--bg-deep) 60%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.nav-logo {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  color: var(--text-primary);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  transition: color 0.2s;
+}
+.nav-logo:hover { color: var(--accent-gold); }
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  list-style: none;
+}
+.nav-links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.2s;
+  letter-spacing: 0.01em;
+}
+.nav-links a:hover { color: var(--text-primary); }
+
+.nav-cta {
+  background: var(--accent-blue);
+  color: #fff !important;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-sm);
+  font-weight: 600 !important;
+  transition: background 0.2s, box-shadow 0.2s !important;
+}
+.nav-cta:hover {
+  background: #5B7BF8;
+  box-shadow: 0 0 20px var(--accent-blue-glow);
+}
+
+/* ===== HERO ===== */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 6rem 1.5rem 4rem;
+  position: relative;
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.hero-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  width: 100%;
+}
+
+.hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.hero-text h1 {
+  color: var(--text-primary);
+}
+
+.hero-text h1 span {
+  color: var(--accent-gold);
+  font-style: italic;
+}
+
+.hero-text .body-lg {
+  font-size: 1.125rem;
+  line-height: 1.7;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.btn-primary, .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: all 0.25s ease;
+}
+
+.btn-primary {
+  background: var(--accent-blue);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: #5B7BF8;
+  box-shadow: 0 8px 30px var(--accent-blue-glow);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+}
+.btn-secondary:hover {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+/* ===== HERO WAVEFORM (Signature Element) ===== */
+.hero-visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 420px;
+}
+
+.waveform-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.waveform-container canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.hero-product-badge {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.hero-product-badge .badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  box-shadow: 0 0 8px var(--accent-gold);
+}
+
+.hero-product-badge span {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* ===== FEATURES STRIP ===== */
+.features-strip {
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 3rem 1.5rem;
+}
+
+.features-strip .strip-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+}
+
+.feature-item {
+  text-align: center;
+  padding: 2rem 1.5rem;
+  position: relative;
+}
+
+.feature-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 15%;
+  height: 70%;
+  width: 1px;
+  background: var(--border-subtle);
+}
+
+.feature-value {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  color: var(--accent-gold);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.feature-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+}
+
+/* ===== PRODUCT SHOWCASE ===== */
+.products {
+  padding: 6rem 1.5rem;
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.products-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 3rem;
+  gap: 1rem;
+}
+
+.products-header h2 {
+  max-width: 16ch;
+}
+
+.products-link {
+  color: var(--accent-gold);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: gap 0.2s;
+}
+.products-link:hover { gap: 0.6rem; }
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.product-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 2rem;
+  transition: border-color 0.25s, transform 0.25s;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.product-card:hover {
+  border-color: var(--accent-gold);
+  transform: translateY(-4px);
+}
+
+.product-card:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
+
+.product-card .card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-gold-dim);
+  color: var(--accent-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.product-card h3 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.product-card .card-desc {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.product-card .card-price {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  color: var(--accent-gold);
+  margin-top: auto;
+}
+
+.product-card .card-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-blue);
+  background: rgba(74, 108, 247, 0.1);
+  border-radius: 100px;
+  padding: 0.2rem 0.65rem;
+  align-self: flex-start;
+}
+
+/* ===== TESTIMONIAL ===== */
+.testimonial {
+  padding: 6rem 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.testimonial blockquote {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  color: var(--text-primary);
+  line-height: 1.5;
+  font-style: italic;
+  letter-spacing: -0.01em;
+}
+
+.testimonial blockquote::before {
+  content: '“';
+  display: block;
+  font-size: 4rem;
+  color: var(--accent-gold);
+  line-height: 1;
+  margin-bottom: 1.5rem;
+  font-style: normal;
+}
+
+.testimonial cite {
+  display: block;
+  margin-top: 2rem;
+  font-style: normal;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.testimonial cite strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* ===== CTA SECTION ===== */
+.cta-section {
+  padding: 6rem 1.5rem;
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.cta-section h2 {
+  margin-bottom: 1rem;
+}
+
+.cta-section .body-lg {
+  margin: 0 auto 2rem;
+}
+
+.cta-form {
+  display: flex;
+  gap: 0.75rem;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.cta-form input {
+  flex: 1;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.8rem 1rem;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+}
+.cta-form input::placeholder { color: var(--text-muted); }
+.cta-form input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+}
+
+/* ===== FOOTER ===== */
+.footer {
+  border-top: 1px solid var(--border-subtle);
+  padding: 3rem 1.5rem;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.footer-brand {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.footer-links {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+  flex-wrap: wrap;
+}
+
+.footer-links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.8rem;
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--accent-gold); }
+
+.footer-copy {
+  width: 100%;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 1rem;
+}
+
+/* ===== KEYBOARD FOCUS & REDUCED MOTION ===== */
+:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html { scroll-behavior: auto; }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .hero-content {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+  .hero-visual { height: 280px; }
+  .hero { padding-top: 5rem; min-height: auto; }
+  .features-strip .strip-inner { grid-template-columns: 1fr; }
+  .feature-item:not(:last-child)::after { display: none; }
+  .feature-item {
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 1.5rem;
+  }
+  .feature-item:last-child { border-bottom: none; }
+  .product-grid { grid-template-columns: 1fr; }
+  .products-header { flex-direction: column; align-items: flex-start; }
+  .nav-links { gap: 1rem; }
+  .nav-links a.nav-cta { display: none; }
+  .cta-form { flex-direction: column; }
+  .footer { flex-direction: column; text-align: center; }
+  .footer-links { justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== NAVIGATION ===== -->
+<nav class="nav" aria-label="主导航">
+  <a href="#" class="nav-logo" aria-label="AURALIS 首页">AURALIS</a>
+  <ul class="nav-links">
+    <li><a href="#products">产品</a></li>
+    <li><a href="#about">关于</a></li>
+    <li><a href="#support">支持</a></li>
+    <li><a href="#cta" class="nav-cta">预约试听</a></li>
+  </ul>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="hero" aria-labelledby="hero-heading">
+  <div class="hero-content">
+    <div class="hero-text">
+      <p class="eyebrow">全新旗舰 · Resonare X1</p>
+      <h1 id="hero-heading">听见<span>每一次</span>呼吸</h1>
+      <p class="body-lg">
+        开放式平面振膜耳机，历时四年调校。从 5Hz 的低频颤动到 50kHz 的超高频延展，每一丝细节都纤毫毕现。
+      </p>
+      <div class="hero-actions">
+        <a href="#products" class="btn-primary">探索产品</a>
+        <a href="#cta" class="btn-secondary">预约试听 →</a>
+      </div>
+    </div>
+
+    <div class="hero-visual" aria-hidden="true">
+      <div class="waveform-container">
+        <canvas id="waveformCanvas" aria-label="实时音频波形可视化"></canvas>
+      </div>
+      <div class="hero-product-badge">
+        <span class="badge-dot"></span>
+        <span>Resonare X1 · 正在发声</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FEATURES STRIP ===== -->
+<section class="features-strip" aria-label="核心数据">
+  <div class="strip-inner">
+    <div class="feature-item">
+      <div class="feature-value">5Hz–50kHz</div>
+      <div class="feature-label">频率响应范围</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-value">&lt;0.05%</div>
+      <div class="feature-label">总谐波失真</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-value">290g</div>
+      <div class="feature-label">仅有整机重量</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PRODUCT SHOWCASE ===== -->
+<section class="products" id="products" aria-labelledby="products-heading">
+  <div class="products-header">
+    <h2 id="products-heading">为每一种聆听方式而设计</h2>
+    <a href="#" class="products-link">查看全部产品 →</a>
+  </div>
+  <div class="product-grid">
+    <!-- 产品卡片 1 -->
+    <a href="#" class="product-card">
+      <div class="card-icon" aria-hidden="true">🎧</div>
+      <span class="card-tag">新品</span>
+      <h3>Resonare X1</h3>
+      <p class="card-desc">旗舰开放式平面振膜耳机，手工匹配的驱动单元，带来前所未有的声场宽度。</p>
+      <span class="card-price">¥12,999</span>
+    </a>
+    <!-- 产品卡片 2 -->
+    <a href="#" class="product-card">
+      <div class="card-icon" aria-hidden="true">🔊</div>
+      <span class="card-tag">畅销</span>
+      <h3>Sonus 8</h3>
+      <p class="card-desc">书架式有源监听音箱，6.5 寸定制低音单元配合铍高音，还原录音室级别的精准。</p>
+      <span class="card-price">¥18,999</span>
+    </a>
+    <!-- 产品卡片 3 -->
+    <a href="#" class="product-card">
+      <div class="card-icon" aria-hidden="true">⚡</div>
+      <h3>Flux DAC/AMP</h3>
+      <p class="card-desc">便携解码耳放一体机，ESS 旗舰芯片，支持 32bit/768kHz 及 DSD512 硬解。</p>
+      <span class="card-price">¥5,499</span>
+    </a>
+  </div>
+</section>
+
+<!-- ===== TESTIMONIAL ===== -->
+<section class="testimonial" aria-label="用户评价">
+  <blockquote>
+    第一次戴上 Resonare X1，我发现自己在听已经循环了十年的专辑时，竟然听到了从未注意过的钢琴踏板声。这不是耳机，这是一台时间机器。
+  </blockquote>
+  <cite><strong>林望舒</strong> · 录音工程师，格莱美提名</cite>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta-section" id="cta" aria-labelledby="cta-heading">
+  <h2 id="cta-heading">用耳朵投票</h2>
+  <p class="body-lg">
+    文字无法描述声音。预约线下试听，在专属听音室中亲身体验 AURALIS 的全系列产品。
+  </p>
+  <form class="cta-form" aria-label="预约试听表单">
+    <input type="email" placeholder="输入邮箱地址" required aria-label="邮箱地址">
+    <button type="submit" class="btn-primary">预约试听</button>
+  </form>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer" role="contentinfo">
+  <span class="footer-brand">AURALIS</span>
+  <ul class="footer-links">
+    <li><a href="#">产品</a></li>
+    <li><a href="#">关于我们</a></li>
+    <li><a href="#">技术支持</a></li>
+    <li><a href="#">隐私政策</a></li>
+    <li><a href="#">联系我们</a></li>
+  </ul>
+  <p class="footer-copy">&copy; 2026 AURALIS. 听见真实。</p>
+</footer>
+
+<!-- ===== WAVEFORM SCRIPT (Signature Animation) ===== -->
+<script>
+(function() {
+  const canvas = document.getElementById('waveformCanvas');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let width, height;
+  let time = 0;
+  let animationId;
+
+  /* 生成多层复合波形 —— 模拟真实音频的谐波结构 */
+  const layers = [
+    { freq: 0.008, amp: 0.35, phase: 0, speed: 0.6 },     // 低频基底
+    { freq: 0.025, amp: 0.25, phase: 1.2, speed: 0.9 },   // 中频
+    { freq: 0.055, amp: 0.18, phase: 2.5, speed: 1.3 },   // 高频谐波
+    { freq: 0.012, amp: 0.12, phase: 3.8, speed: 0.4 },   // 低频调制
+    { freq: 0.07, amp: 0.08, phase: 1.7, speed: 1.7 },    // 极高频细节
+  ];
+
+  /* 计算复合波形值 */
+  function waveValue(x, t) {
+    let v = 0;
+    for (const layer of layers) {
+      v += layer.amp * Math.sin(x * layer.freq * Math.PI * 2 + t * layer.speed + layer.phase);
+    }
+    return v;
+  }
+
+  /* 波形颜色 —— 使用品牌金色渐变 */
+  function getWaveColor(alpha) {
+    return `rgba(201, 169, 110, ${alpha})`;
+  }
+
+  function resize() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    width = rect.width * dpr;
+    height = rect.height * dpr;
+    canvas.width = width;
+    canvas.height = height;
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = rect.height + 'px';
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, width, height);
+
+    const midY = height / 2;
+    const steps = 300;
+
+    // 绘制多条波形线，模拟立体声/多轨道
+    for (let line = 0; line < 3; line++) {
+      const offsetY = (line - 1) * 28 * (window.devicePixelRatio || 1);
+      const alphaBase = 0.6 - line * 0.15;
+
+      ctx.beginPath();
+      for (let i = 0; i <= steps; i++) {
+        const x = (i / steps) * width;
+        const wx = i / steps;
+        const val = waveValue(wx, time + line * 0.4) * (height * 0.25);
+        const y = midY + offsetY + val;
+
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+      ctx.strokeStyle = getWaveColor(alphaBase);
+      ctx.lineWidth = line === 1 ? 2.5 : 1.2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+    }
+
+    // 添加柔和的光晕中心线
+    const gradient = ctx.createLinearGradient(0, midY - 4, 0, midY + 4);
+    gradient.addColorStop(0, 'rgba(201, 169, 110, 0)');
+    gradient.addColorStop(0.5, 'rgba(201, 169, 110, 0.2)');
+    gradient.addColorStop(1, 'rgba(201, 169, 110, 0)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, midY - 4, width, 8);
+  }
+
+  function animate() {
+    time += 0.016;
+    draw();
+    animationId = requestAnimationFrame(animate);
+  }
+
+  function handleResize() {
+    resize();
+    draw();
+  }
+
+  resize();
+  draw();
+
+  if (!prefersReduced) {
+    animate();
+  }
+
+  window.addEventListener('resize', handleResize);
+
+  /* 监听 reduced motion 变化 */
+  window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (e) => {
+    if (e.matches) {
+      cancelAnimationFrame(animationId);
+    } else {
+      animate();
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

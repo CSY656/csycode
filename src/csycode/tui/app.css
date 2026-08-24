@@ -1,0 +1,103 @@
+/* CsyCode TUI Styles */
+
+/* --- Global --- */
+Screen {
+    background: #1a1a2e;
+    color: #e0e0e0;
+}
+
+/* --- Chat View --- */
+ChatView {
+    padding: 1 2;
+    overflow-y: auto;
+}
+
+ChatView .user-message {
+    background: #16213e;
+    color: #7ec8e3;
+    padding: 1 2;
+    margin: 1 0;
+    border-left: solid #7ec8e3;
+}
+
+ChatView .assistant-message {
+    background: #0f3460;
+    color: #e0e0e0;
+    padding: 1 2;
+    margin: 1 0;
+    border-left: solid #53d769;
+}
+
+ChatView .assistant-message Markdown {
+    margin: 0;
+}
+
+ChatView .assistant-message Markdown Code {
+    background: #1e1e3a;
+    color: #f8c555;
+    padding: 1;
+}
+
+ChatView .error-message {
+    background: #3e1a1a;
+    color: #ff6b6b;
+    padding: 1 2;
+    margin: 1 0;
+    border-left: solid #ff6b6b;
+}
+
+ChatView .info-message {
+    color: #888;
+    padding: 1 2;
+    margin: 1 0;
+    text-style: italic;
+}
+
+/* --- Thinking Panel --- */
+ThinkingPanel {
+    background: #1e1e3a;
+    padding: 0 2;
+    margin: 1 0;
+    border-left: solid #f0a500;
+}
+
+ThinkingPanel .thinking-label {
+    color: #f0a500;
+    text-style: italic;
+}
+
+ThinkingPanel .thinking-content {
+    color: #a0a0c0;
+    text-style: italic;
+    padding: 1 2;
+}
+
+/* --- Input Bar --- */
+InputBar {
+    dock: bottom;
+    background: #16213e;
+    padding: 1 2;
+    border-top: solid #0f3460;
+}
+
+InputBar Input {
+    background: #1a1a2e;
+    color: #e0e0e0;
+    border: none;
+    width: 100%;
+}
+
+InputBar Input:focus {
+    border: solid #53d769;
+}
+
+InputBar .input-label {
+    color: #888;
+    padding: 0 1;
+    text-style: italic;
+}
+
+InputBar.readonly Input {
+    background: #111;
+    color: #555;
+}
