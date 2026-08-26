@@ -181,6 +181,7 @@ class MockProvider:
         self.name = "mock"
         self.model = "mock-model"
         self.last_request: Request | None = None
+        self.requests: list[Request] = []
 
     async def stream(self, req: Request) -> AsyncIterator[StreamEvent]:
         """返回预设的响应序列（ch05 签名）。
@@ -190,6 +191,7 @@ class MockProvider:
         若元素是 StreamEvent，则直接 yield。
         """
         self.last_request = req
+        self.requests.append(req)
         if self._call_count >= len(self._responses):
             yield StreamEvent(text="", done=True)
             return
@@ -234,6 +236,36 @@ class TestAgentSingleTurn:
         assert ends[0].reason == "model_done"
         assert ends[0].final_text == "Hello, world!"
         assert ends[0].total_rounds == 0
+
+    @pytest.mark.asyncio
+    async def test_reasoning_effort_is_forwarded(self):
+        """Agent 每轮请求都携带当前思考强度。"""
+        provider = MockProvider([
+            StreamEvent(
+                tool_calls=[
+                    ToolCall(id="tc1", name="read_file", arguments={"file_path": "a.txt"}),
+                ],
+                done=True,
+            ),
+            StreamEvent(text="done", done=True),
+        ])
+        registry = _make_registry(["read_file"])
+        conv = Conversation()
+        conv.add_user("read a.txt")
+        agent = Agent(
+            provider,
+            registry,
+            conv,
+            AgentConfig(),
+            version="test",
+            reasoning_effort="xhigh",
+        )
+
+        async for _ in agent.run(Mode.DEFAULT):
+            pass
+
+        assert len(provider.requests) == 2
+        assert [req.reasoning_effort for req in provider.requests] == ["xhigh", "xhigh"]
 
     @pytest.mark.asyncio
     async def test_multi_text_chunks(self):

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from csycode.llm import PromptTooLongError
-from csycode.llm.anthropic_provider import _wrap_ptl_error
+from csycode.llm import PromptTooLongError, Request
+from csycode.llm.anthropic_provider import AnthropicProvider, _wrap_ptl_error
 
 
 class TestWrapPtlError:
@@ -40,6 +40,84 @@ class TestWrapPtlError:
         orig = FakeBadRequest("invalid API key")
         ev = _wrap_ptl_error(orig)
         assert not isinstance(ev.err, PromptTooLongError)
+
+    def test_plain_exception_not_wrapped(self):
+        orig = ValueError("something went wrong")
+        ev = _wrap_ptl_error(orig)
+        assert not isinstance(ev.err, PromptTooLongError)
+
+
+class _EmptyAnthropicStream:
+    final_message = None
+
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        raise StopAsyncIteration
+
+
+class _FakeAnthropicContext:
+    def __init__(self, owner, params):
+        self._owner = owner
+        self._params = params
+
+    async def __aenter__(self):
+        self._owner.params = self._params
+        return _EmptyAnthropicStream()
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return False
+
+
+class _FakeMessages:
+    def __init__(self):
+        self.params = None
+
+    def stream(self, **params):
+        return _FakeAnthropicContext(self, params)
+
+
+class _FakeAnthropicClient:
+    def __init__(self):
+        self.messages = _FakeMessages()
+
+
+def _make_anthropic_provider(thinking: bool) -> AnthropicProvider:
+    provider = object.__new__(AnthropicProvider)
+    provider._client = _FakeAnthropicClient()
+    provider._model = "mock-model"
+    provider._name = "mock"
+    provider._thinking = thinking
+    provider._max_tokens = 4096
+    return provider
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "effort,budget",
+    [("low", 1024), ("medium", 2048), ("high", 4096), ("xhigh", 8192)],
+)
+async def test_anthropic_thinking_budget_maps_effort(effort: str, budget: int):
+    """Anthropic thinking 预算按四个等级映射。"""
+    provider = _make_anthropic_provider(thinking=True)
+
+    events = [event async for event in provider.stream(Request(reasoning_effort=effort))]
+
+    assert events[-1].done
+    params = provider._client.messages.params
+    assert params["thinking"] == {"type": "enabled", "budget_tokens": budget}
+    assert params["max_tokens"] > budget
+
+
+@pytest.mark.asyncio
+async def test_anthropic_thinking_disabled_omits_parameter():
+    """thinking=false 时不发送 thinking 参数。"""
+    provider = _make_anthropic_provider(thinking=False)
+
+    _ = [event async for event in provider.stream(Request(reasoning_effort="xhigh"))]
+
+    assert "thinking" not in provider._client.messages.params
 
     def test_plain_exception_not_wrapped(self):
         orig = ValueError("something went wrong")

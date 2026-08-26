@@ -13,7 +13,6 @@ from typing import AsyncIterator
 import anthropic
 
 from csycode.config import ProviderConfig
-
 from . import Message, Request, StreamEvent, ToolCall, Usage
 
 
@@ -47,6 +46,17 @@ class AnthropicProvider:
     def set_max_output_tokens(self, tokens: int) -> None:
         """动态调整 max_tokens（用于 max_tokens 恢复）。"""
         self._max_tokens = tokens
+
+    @staticmethod
+    def _thinking_budget(effort: str) -> int:
+        """将通用思考等级映射为 Anthropic thinking 预算。"""
+        budgets = {
+            "low": 1024,
+            "medium": 2048,
+            "high": 4096,
+            "xhigh": 8192,
+        }
+        return budgets.get(effort, budgets["high"])
 
     # ── 消息格式转换 ───────────────────────────────────────────────
 
@@ -256,7 +266,9 @@ class AnthropicProvider:
             params["system"] = system_blocks
 
         if self._thinking:
-            params["thinking"] = {"type": "enabled", "budget_tokens": 2048}
+            budget = self._thinking_budget(req.reasoning_effort)
+            params["thinking"] = {"type": "enabled", "budget_tokens": budget}
+            params["max_tokens"] = max(self._max_tokens, budget + 1)
 
         if anthropic_tools:
             anthropic_tools = list(anthropic_tools)  # 拷贝，避免修改上游

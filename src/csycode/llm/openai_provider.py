@@ -157,6 +157,7 @@ class OpenAIProvider:
             "messages": messages,
             "max_tokens": self._max_tokens,
             "stream": True,
+            "reasoning_effort": req.reasoning_effort,
         }
         # stream_options 是 OpenAI 特有参数，第三方 API（如 DeepSeek）可能不支持
         if self._is_openai:

@@ -12,14 +12,14 @@ from csycode.permission import Mode
 
 class TestRegisterBuiltins:
     def test_register_builtins_all_registered(self):
-        """register_builtins 注册恰好 14 条命令（ch12: +/hooks, ch14: +/worktree）。"""
+        """register_builtins 注册恰好 15 条命令（含 /effort）。"""
         reg = Registry()
         register_builtins(reg)
         visible = reg.visible()
-        assert len(visible) == 14
+        assert len(visible) == 15
 
     def test_register_builtins_names(self):
-        """检查全部 14 个命令名（ch12: +hooks, ch14: +worktree）。"""
+        """检查全部 15 个命令名（含 /effort）。"""
         reg = Registry()
         register_builtins(reg)
         names = {c.name for c in reg.visible()}
@@ -27,6 +27,7 @@ class TestRegisterBuiltins:
             "help", "status", "memory", "permission", "session",
             "exit", "plan", "compact", "resume", "clear",
             "do", "review", "hooks", "worktree",
+            "effort",
         }
         assert names == expected
 
@@ -106,8 +107,56 @@ async def test_handle_status_prints_all_keys():
     await cmd.handler(ui)
     assert len(ui._println_calls) == 1
     output = ui._println_calls[0]
-    for key in ("Mode:", "Tokens:", "Tools:", "Memories:", "Model:", "Directory:"):
+    for key in ("Mode:", "Effort:", "Tokens:", "Tools:", "Memories:", "Model:", "Directory:"):
         assert key in output, f"status 输出缺失 {key}"
+
+
+@pytest.mark.asyncio
+async def test_handle_effort_query_and_switch():
+    """/effort 支持查询和切换，且使用统一的等级解析。"""
+    reg = Registry()
+    register_builtins(reg)
+    ui = RecordingUI()
+    cmd = reg.lookup("effort")
+    assert cmd is not None
+
+    await cmd.handler(ui, "")
+    assert "当前思考强度: high" in ui._println_calls[-1]
+
+    await cmd.handler(ui, " MEDIUM ")
+    assert ui.reasoning_effort() == "medium"
+    assert ui._println_calls[-1] == "思考强度已切换为: medium"
+
+
+@pytest.mark.asyncio
+async def test_handle_effort_rejects_invalid_and_busy():
+    """非法等级和执行中切换都不会改变旧等级。"""
+    reg = Registry()
+    register_builtins(reg)
+    ui = RecordingUI()
+    cmd = reg.lookup("effort")
+    assert cmd is not None
+
+    await cmd.handler(ui, "middle")
+    assert ui.reasoning_effort() == "high"
+    assert "未知思考强度" in ui._error_calls[-1]
+
+    ui._idle = False
+    await cmd.handler(ui, "low")
+    assert ui.reasoning_effort() == "high"
+    assert "正在执行" in ui._error_calls[-1]
+
+
+@pytest.mark.asyncio
+async def test_help_and_completion_expose_effort():
+    """/help 和前缀补全都能发现 /effort。"""
+    reg = Registry()
+    register_builtins(reg)
+    ui = RecordingUI()
+
+    await reg.lookup("help").handler(ui)  # type: ignore[union-attr]
+    assert "/effort" in ui._println_calls[-1]
+    assert [cmd.name for cmd in reg.prefix_match("/eff")] == ["effort"]
 
 
 # ── handle_compact idle 守护测试 ─────────────────────────────────────

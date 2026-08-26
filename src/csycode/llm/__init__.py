@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import Any, AsyncIterator, Literal, Protocol, runtime_checkable
 
 from csycode.config import ProviderConfig
+from csycode.effort import DEFAULT_REASONING_EFFORT, ReasoningEffort
 
 
 # ── 哨兵异常 ─────────────────────────────────────────────────────────────
@@ -183,6 +184,7 @@ class Request:
     tools: list[dict] = field(default_factory=list)
     system: System = field(default_factory=System)
     reminder: str = ""
+    reasoning_effort: ReasoningEffort = DEFAULT_REASONING_EFFORT
 
 
 # ── ToolDefinition（协议原生格式） ────────────────────────────────────────

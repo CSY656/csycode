@@ -31,7 +31,7 @@ class TestStatusbarLeft:
         """无请求记录时不显示百分比。"""
         app._last_input_tokens = None
         left = app._statusbar_left()
-        assert left == "DEFAULT"
+        assert left == "DEFAULT · Effort: HIGH"
         assert "context used" not in left
 
     def test_context_window_zero_returns_no_percent(self, app: csyCodeApp):
@@ -39,7 +39,7 @@ class TestStatusbarLeft:
         app._last_input_tokens = 100000
         app._context_window = 0
         left = app._statusbar_left()
-        assert left == "DEFAULT"
+        assert left == "DEFAULT · Effort: HIGH"
         assert "context used" not in left
 
     def test_context_window_none_returns_no_percent(self, app: csyCodeApp):
@@ -47,7 +47,7 @@ class TestStatusbarLeft:
         app._last_input_tokens = 100000
         app._context_window = None
         left = app._statusbar_left()
-        assert left == "DEFAULT"
+        assert left == "DEFAULT · Effort: HIGH"
         assert "context used" not in left
 
     def test_normal_percent_calculation(self, app: csyCodeApp):
@@ -55,7 +55,7 @@ class TestStatusbarLeft:
         app._last_input_tokens = 85000
         app._context_window = 200000
         left = app._statusbar_left()
-        assert left == "DEFAULT · 43% context used"
+        assert left == "DEFAULT · Effort: HIGH · 43% context used"
 
     def test_round_up_at_half(self, app: csyCodeApp):
         """四舍五入：101000 / 200000 = 50.5% → 51%。"""
@@ -77,7 +77,7 @@ class TestStatusbarLeft:
         app._context_window = 200000
         app.coordinator_mode = True
         left = app._statusbar_left()
-        assert left == "DEFAULT [COORDINATOR] · 43% context used"
+        assert left == "DEFAULT [COORDINATOR] · Effort: HIGH · 43% context used"
 
     def test_plan_mode_label(self, app: csyCodeApp):
         """PLAN 模式下正确显示模式标签。"""

@@ -84,7 +84,10 @@ class TestRunShell:
     @pytest.mark.asyncio
     async def test_stdin_json_payload(self, executor):
         """验证 payload 通过 stdin 传给脚本（key 字典序）。"""
-        rule = _make_shell_rule("cat")
+        # Windows 没有 cat，用当前解释器回显 stdin，跨平台等价。
+        rule = _make_shell_rule(
+            f'{sys.executable} -c "import sys; sys.stdout.write(sys.stdin.read())"'
+        )
         payload = {"tool_name": "test", "event": "PreToolUse"}
         result = await executor.run(rule, payload, blocking=False)
         assert result.err is None

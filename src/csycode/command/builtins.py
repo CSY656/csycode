@@ -1,4 +1,4 @@
-"""一次性注册 12 条内置命令到 Registry。
+"""一次性注册内置命令到 Registry。
 
 对齐 mewcode: /session, /memory, /permission 支持子命令，
 通过可选依赖注入 engine / mem_mgr / sessions_dir。
@@ -11,6 +11,7 @@ from .builtin_local import (
     make_memory_handler,
     make_permission_handler,
     make_session_handler,
+    handle_effort,
     handle_status,
 )
 from .builtin_prompt import handle_do, handle_review
@@ -32,7 +33,7 @@ def register_builtins(
     mem_mgr=None,        # Memory Manager
     sessions_dir: str = "",  # sessions 目录路径
 ) -> None:
-    """按字典序注册 12 条内置命令。
+    """按字典序注册内置命令。
 
     Args:
         reg: 命令注册中心。
@@ -85,6 +86,15 @@ def register_builtins(
             description="显示当前运行状态",
             kind=Kind.LOCAL,
             handler=handle_status,
+        )
+    )
+
+    reg.register(
+        Command(
+            name="effort",
+            description="切换思考强度 [/effort low|medium|high|xhigh]",
+            kind=Kind.LOCAL,
+            handler=handle_effort,
         )
     )
 

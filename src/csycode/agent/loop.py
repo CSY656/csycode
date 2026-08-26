@@ -15,6 +15,11 @@ from typing import TYPE_CHECKING, Any, AsyncIterator
 
 from csycode.config import AgentConfig
 from csycode.conversation import Conversation
+from csycode.effort import (
+    DEFAULT_REASONING_EFFORT,
+    ReasoningEffort,
+    parse_reasoning_effort,
+)
 from csycode.llm import Message, Provider, Request, System, ToolCall
 
 from csycode import prompt
@@ -144,6 +149,7 @@ class Agent:
         permission_mode: "Mode | None" = None,  # 子 Agent 权限模式
         dont_ask: bool = False,              # 子 Agent dontAsk 兜底
         approval_upgrader: Any = None,       # 子 Agent 审批升级回调
+        reasoning_effort: str = DEFAULT_REASONING_EFFORT,
     ) -> None:
         self._provider = provider
         self._tool_registry = tool_registry
@@ -154,6 +160,9 @@ class Agent:
         self._plan_mode = plan_mode_filter
         self._engine = engine
         self.context_window = context_window
+        self._reasoning_effort: ReasoningEffort = (
+            parse_reasoning_effort(reasoning_effort) or DEFAULT_REASONING_EFFORT
+        )
 
         # ── ch13: SubAgent 专用字段 ──
         self._system_prompt = system_prompt
@@ -213,6 +222,19 @@ class Agent:
     def total_output_tokens(self) -> int:
         """ch13: 总输出 token（供 TaskManager 使用）。"""
         return self._total_output_tokens
+
+    @property
+    def reasoning_effort(self) -> ReasoningEffort:
+        """返回当前 Agent 使用的思考强度。"""
+        return self._reasoning_effort
+
+    def set_reasoning_effort(self, value: str) -> bool:
+        """校验并更新后续请求使用的思考强度。"""
+        parsed = parse_reasoning_effort(value)
+        if parsed is None:
+            return False
+        self._reasoning_effort = parsed
+        return True
 
     # ── ch13: run_to_completion ────────────────────────────────────
 
@@ -450,6 +472,7 @@ class Agent:
                         tools=defs,
                         system=System(stable=stable_system, environment=env.render()),
                         reminder=reminder,
+                        reasoning_effort=self._reasoning_effort,
                     )
                 ):
                     if isinstance(event, LoopEnd):

@@ -41,6 +41,11 @@ from csycode.command.builtins import register_builtins
 from csycode.command.dispatch import parse
 from csycode.config import Config, effective_context_window
 from csycode.conversation import Conversation
+from csycode.effort import (
+    DEFAULT_REASONING_EFFORT,
+    ReasoningEffort,
+    parse_reasoning_effort,
+)
 from csycode.llm import Provider, new_provider
 from csycode.permission import Engine, Mode, Outcome
 from csycode.prompt import render_banner
@@ -195,6 +200,7 @@ class csyCodeApp(App):
         self.tool_registry: ToolRegistry | None = None
         self._protocol: str = ""
         self._plan_mode_filter: PlanModeFilter | None = None
+        self._reasoning_effort: ReasoningEffort = DEFAULT_REASONING_EFFORT
 
         # ── ch08: Agent 引用 ──────────────────────────────────────
         self.agent: Agent | None = None
@@ -618,6 +624,7 @@ class csyCodeApp(App):
         # ch15: Coordinator Mode 标签
         if self.coordinator_mode:
             left += " [COORDINATOR]"
+        left += f" · Effort: {self._reasoning_effort.upper()}"
 
         # ch16: 上下文窗口使用百分比
         if (
@@ -1184,6 +1191,7 @@ class csyCodeApp(App):
                 instructions_content=self._instruction_text,
                 mem_mgr=self._mem_mgr,
                 hook_engine=self.hook_engine,  # ch12
+                reasoning_effort=self._reasoning_effort,
             )
 
             # ch12: 将 hook_engine 注入 runtime
@@ -1213,6 +1221,8 @@ class csyCodeApp(App):
                 self.agent._system_prompt += "\n" + system_prompt_suffix()
 
         round_text = ""
+        # 工具过程仅供内部调度使用，主对话日志不展示调用详情。
+        show_tool_details = False
 
         # ── ch14: Worktree cwd 注入 ──
         from csycode.tools.ctx import _ctx_cwd as _cwd_var
@@ -1232,23 +1242,26 @@ class csyCodeApp(App):
                 elif isinstance(event, ToolUseEvent):
                     # 流期间工具调用（对齐 mewcode）：LLM 还未说完，工具已开始执行
                     call_label = tool_call_block(event.tool_name, event.arguments)
-                    log.write(call_label)
+                    if show_tool_details:
+                        log.write(call_label)
 
                 elif isinstance(event, ToolCallStart):
                     if round_text:
-                        log.write(assistant_block(round_text))
                         round_text = ""
                         self.cur_reply = ""
-                        streaming_widget.update("")
+                        elapsed = max(0, time.monotonic() - self.turn_start)
+                        streaming_widget.update(streaming_text("", elapsed))
                     call_label = tool_call_block(event.tool_name, event.tool_args)
-                    log.write(call_label)
-                    streaming_widget.update(str(call_label))
+                    if show_tool_details:
+                        log.write(call_label)
+                        streaming_widget.update(str(call_label))
 
                 elif isinstance(event, ToolCallEnd):
                     if event.success:
-                        log.write(tool_result_block(event.tool_name, True))
+                        if show_tool_details:
+                            log.write(tool_result_block(event.tool_name, True))
                         # ch08: 展示原始输出（若被 offload 则展示 TUI 预览 + 落盘路径）
-                        if event.show_result_to_user:
+                        if show_tool_details and event.show_result_to_user:
                             if event.offloaded:
                                 # 被落盘：显示预览体（含路径提示）
                                 log.write(
@@ -1270,9 +1283,9 @@ class csyCodeApp(App):
                         )
 
                 elif isinstance(event, LoopProgress):
-                    if event.round_num > 1 and event.status == "thinking":
+                    if show_tool_details and event.round_num > 1 and event.status == "thinking":
                         log.write(turn_separator(event.round_num))
-                    if event.status == "executing":
+                    if show_tool_details and event.status == "executing":
                         streaming_widget.update(
                             f"🔧 执行工具中… (第 {event.round_num}/{event.max_rounds} 轮)"
                         )
@@ -1617,6 +1630,9 @@ class csyCodeApp(App):
     def _idle_impl(self) -> bool:
         return self.state == SessionState.IDLE
 
+    def _reasoning_effort_impl(self) -> str:
+        return self._reasoning_effort
+
     # ── ch10: UI Protocol 写入方法 (T9b) ───────────────────────────
 
     def _println_impl(self, msg: str) -> None:
@@ -1634,6 +1650,16 @@ class csyCodeApp(App):
                 self._plan_mode_filter.enter_do_mode()
         self._update_mode_label()
         self._update_statusbar()
+
+    def _set_reasoning_effort_impl(self, value: str) -> bool:
+        parsed = parse_reasoning_effort(value)
+        if parsed is None:
+            return False
+        self._reasoning_effort = parsed
+        if self.agent is not None:
+            self.agent.set_reasoning_effort(parsed)
+        self._update_statusbar()
+        return True
 
     def _quit_impl(self) -> None:
         asyncio.create_task(self.action_quit())
@@ -1724,6 +1750,9 @@ class csyCodeApp(App):
         self._usage_out = 0
         # ── ch16: 清空上下文使用百分比记录 ──
         self._last_input_tokens = None
+        self._reasoning_effort = DEFAULT_REASONING_EFFORT
+        if self.agent is not None:
+            self.agent.set_reasoning_effort(DEFAULT_REASONING_EFFORT)
 
         # g. 清屏
         try:
@@ -1916,6 +1945,8 @@ class csyCodeApp(App):
     session_path = _session_path_impl
     session_id = _session_id_impl
     idle = _idle_impl
+    reasoning_effort = _reasoning_effort_impl
+    set_reasoning_effort = _set_reasoning_effort_impl
     worktree_accessor = _worktree_accessor_impl
     quit = _quit_impl
     force_compact = _force_compact_impl

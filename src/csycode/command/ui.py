@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol
 
+from csycode.effort import DEFAULT_REASONING_EFFORT, parse_reasoning_effort
 from csycode.permission import Mode
 
 
@@ -148,6 +149,14 @@ class UI(Protocol):
         """返回当前是否处于 IDLE 状态。"""
         ...
 
+    def reasoning_effort(self) -> str:
+        """返回当前思考强度等级。"""
+        ...
+
+    def set_reasoning_effort(self, value: str) -> bool:
+        """校验并设置思考强度，成功返回 True。"""
+        ...
+
     # ── ch14: Worktree ────────────────────────────────────────────
 
     def worktree_accessor(self) -> WorktreeAccessor | None:
@@ -224,6 +233,16 @@ class NopUI:
     # ── 状态机查询 ──
 
     def idle(self) -> bool:
+        return True
+
+    def reasoning_effort(self) -> str:
+        return getattr(self, "_reasoning_effort", DEFAULT_REASONING_EFFORT)
+
+    def set_reasoning_effort(self, value: str) -> bool:
+        parsed = parse_reasoning_effort(value)
+        if parsed is None:
+            return False
+        self._reasoning_effort = parsed
         return True
 
     # ── ch14: Worktree ──

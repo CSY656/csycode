@@ -8,6 +8,12 @@ from __future__ import annotations
 
 from csycode.command.command import Handler
 from csycode.command.registry import Registry
+from csycode.effort import (
+    DEFAULT_REASONING_EFFORT,
+    REASONING_EFFORTS,
+    parse_reasoning_effort,
+    reasoning_effort_help,
+)
 
 
 # ── /help ─────────────────────────────────────────────────────────────
@@ -34,11 +40,12 @@ def make_help_handler(reg: Registry) -> Handler:
 
 
 async def handle_status(ui) -> None:
-    """输出当前运行时 6 项状态信息。"""
+    """输出当前运行时状态信息。"""
     lines = [
         "csyCode Status",
         "",
         f"{'Mode:':<12}{str(ui.mode())}",
+        f"{'Effort:':<12}{ui.reasoning_effort()}",
         f"{'Tokens:':<12}{ui.usage_in()} in / {ui.usage_out()} out",
         f"{'Tools:':<12}{ui.tool_count()} enabled",
         f"{'Memories:':<12}{len(ui.memory_files())} files",
@@ -46,6 +53,43 @@ async def handle_status(ui) -> None:
         f"{'Directory:':<12}{ui.cwd()}",
     ]
     ui.println("\n".join(lines))
+
+
+async def handle_effort(ui, args: str = "") -> None:
+    """查询或切换当前会话后续请求的思考强度。"""
+    parts = args.strip().split()
+    current = ui.reasoning_effort()
+
+    if not parts:
+        ui.println(
+            f"当前思考强度: {current}\n"
+            f"默认思考强度: {DEFAULT_REASONING_EFFORT}\n"
+            f"{reasoning_effort_help()}"
+        )
+        return
+
+    if len(parts) != 1:
+        ui.error(f"参数数量错误\n{reasoning_effort_help()}")
+        return
+
+    parsed = parse_reasoning_effort(parts[0])
+    if parsed is None:
+        ui.error(
+            f"未知思考强度: {parts[0]}\n"
+            f"可选等级: {', '.join(REASONING_EFFORTS)}\n"
+            f"当前思考强度: {current}"
+        )
+        return
+
+    if not ui.idle():
+        ui.error("当前任务正在执行，请等待任务完成后再切换思考强度")
+        return
+
+    if not ui.set_reasoning_effort(parsed):
+        ui.error(f"无法设置思考强度: {parsed}")
+        return
+
+    ui.println(f"思考强度已切换为: {parsed}")
 
 
 # ── /memory ───────────────────────────────────────────────────────────
